@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Ko Tane — Waka on Avon Daily Checklist</title>
+<style>
+:root{--g:#1e3d2f;--gl:#2a5240;--gold:#b8923a;--cream:#f4f1eb;--red:#c0392b;--sgr:#27ae60;--grey:#666;--lgrey:#aaa;--warn:#d4700a;--border:#e2d9cf}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--cream);color:#222;min-height:100vh}
+#header{background:var(--g);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.brand{padding:12px 16px 0;text-align:center}
+.brand-ko{font-size:10px;letter-spacing:3px;opacity:.6;text-transform:uppercase}
+.brand-name{font-size:18px;font-weight:800;letter-spacing:.5px;margin-top:2px}
+.brand-sub{font-size:11px;opacity:.55;margin-top:1px}
+.tabs{display:flex;margin-top:10px;border-top:1px solid rgba(255,255,255,.12)}
+.tab{flex:1;padding:10px 4px;border:none;cursor:pointer;background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:400;border-bottom:3px solid transparent;font-family:inherit;transition:all .2s}
+.tab.active{background:rgba(255,255,255,.12);color:#fff;font-weight:700;border-bottom-color:var(--gold)}
+#content{padding:14px 13px 20px;max-width:640px;margin:0 auto}
+.card{background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:13px;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card-title{font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.info-grid.single{grid-template-columns:1fr}
+.field-lbl{font-size:10px;color:var(--lgrey);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.field-input{width:100%;padding:7px 10px;border-radius:8px;border:1.5px solid #bbb;font-size:13.5px;font-family:inherit;outline:none}
+.field-input:focus{border-color:var(--g)}
+.date-line{margin-top:8px;font-size:12px;color:var(--grey)}
+.prog-row{display:flex;justify-content:space-between;margin-bottom:7px}
+.prog-title{font-size:13px;font-weight:700;color:var(--g)}
+.prog-count{font-size:12px;color:var(--grey)}
+.prog-track{height:10px;background:#e5e0d8;border-radius:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:5px;transition:width .3s}
+.prog-pct{text-align:right;font-size:12px;color:var(--grey);margin-top:4px}
+.prog-pct.done{color:var(--sgr);font-weight:700}
+.dmg-banner{background:#fff0ef;border:2px solid var(--red);border-radius:12px;padding:13px 14px;margin-bottom:13px;display:flex;gap:10px;align-items:flex-start}
+.dmg-icon{font-size:22px;flex-shrink:0}
+.dmg-title{font-weight:700;color:var(--red);font-size:14px}
+.dmg-text{font-size:12.5px;color:#555;margin-top:3px}
+.section{margin-bottom:18px}
+.sec-head{background:var(--g);color:#fff;padding:9px 14px;border-radius:10px 10px 0 0;display:flex;justify-content:space-between;align-items:center}
+.sec-title{font-size:13.5px;font-weight:700;letter-spacing:.5px}
+.sec-cnt{font-size:12px;opacity:.75}
+.sec-bar{height:5px;background:#ddd}
+.sec-bar-fill{height:100%;transition:width .3s}
+.sec-items{padding-top:10px}
+.item{background:#fff;border:1px solid var(--border);border-radius:10px;margin-bottom:7px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.item.bad{background:#fff5f0;border-color:var(--red);box-shadow:0 0 0 2px rgba(192,57,43,.15)}
+.item-row{display:flex;align-items:center;gap:9px;padding:11px 12px}
+.cb{width:22px;height:22px;border-radius:6px;flex-shrink:0;cursor:pointer;background:#fff;border:2px solid #bbb;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
+.cb.on{background:var(--g);border-color:var(--g)}
+.cb-mark{color:#fff;font-size:12px;font-weight:900;line-height:1;display:none}
+.cb.on .cb-mark{display:block}
+.item-lbl{flex:1;min-width:0}
+.item-name{font-size:13.5px;font-weight:600;color:#222;line-height:1.3}
+.item-note{font-size:11.5px;color:var(--grey);margin-top:2px;line-height:1.3}
+.item.bad .item-name{color:var(--red)}
+.item.bad .item-note{color:var(--red)}
+.item-ctrl{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.yn{width:31px;height:27px;border-radius:6px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:#eee;color:#999;transition:all .15s;font-family:inherit}
+.yn.y-ok{background:var(--sgr);color:#fff}
+.yn.y-bad{background:var(--red);color:#fff}
+.yn.n-on{background:var(--red);color:#fff}
+.amt-in{width:46px;padding:5px 4px;border-radius:6px;font-size:13px;border:1.5px solid #bbb;text-align:center;outline:none;font-family:inherit}
+.amt-in:focus{border-color:var(--g)}
+.cmt-btn{width:27px;height:27px;border-radius:6px;font-size:13px;border:none;cursor:pointer;background:#eee;color:#bbb;transition:all .15s;font-family:inherit}
+.cmt-btn.on{background:var(--gl);color:#fff}
+.item-cmt{padding:0 12px 10px 43px}
+.item-cmt textarea{width:100%;padding:7px 9px;border-radius:8px;font-size:12.5px;border:1.5px solid #bbb;resize:vertical;font-family:inherit;outline:none}
+.item-cmt textarea:focus{border-color:var(--g)}
+.notes-title{font-size:13px;font-weight:700;color:var(--g);margin-bottom:9px}
+.notes-ta{width:100%;padding:9px 11px;border-radius:8px;font-size:13px;border:1.5px solid #bbb;resize:vertical;font-family:inherit;min-height:80px;outline:none}
+.notes-ta:focus{border-color:var(--g)}
+.arch-btn{width:100%;padding:13px;border-radius:12px;font-size:14.5px;font-weight:700;background:var(--g);color:#fff;border:none;cursor:pointer;font-family:inherit;margin-bottom:6px;transition:opacity .2s}
+.arch-btn:disabled{opacity:.6;cursor:not-allowed}
+.arch-hint{text-align:center;font-size:11.5px;color:var(--grey);margin-bottom:28px}
+/* Archive */
+.arch-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.arch-toolbar-title{font-size:13px;font-weight:700;color:var(--g)}
+.admin-btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;border:1.5px solid var(--g);background:#fff;color:var(--g);cursor:pointer;font-family:inherit}
+.admin-btn.active{background:var(--g);color:#fff}
+.admin-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;display:flex;gap:8px;align-items:center}
+.admin-bar input{flex:1;padding:7px 10px;border-radius:8px;border:1.5px solid #bbb;font-size:13.5px;font-family:inherit;outline:none}
+.admin-bar input:focus{border-color:var(--g)}
+.admin-bar button{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:700;border:none;background:var(--g);color:#fff;cursor:pointer;font-family:inherit}
+.admin-status{font-size:12px;color:var(--sgr);font-weight:600;padding:4px 0 8px}
+.arch-empty{text-align:center;padding:60px 20px;color:var(--grey)}
+.arch-empty-icon{font-size:44px;margin-bottom:12px}
+.arch-empty-h{font-size:16px;font-weight:700;color:var(--g)}
+.arch-empty-s{font-size:13px;margin-top:6px}
+.arch-loading{text-align:center;padding:50px 20px;color:var(--g)}
+.spinner{display:inline-block;width:32px;height:32px;border:3px solid rgba(30,61,47,.2);border-top-color:var(--g);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.arch-entry{background:#fff;border-radius:12px;margin-bottom:10px;border:1px solid var(--border);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.arch-hd{padding:13px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.arch-hd-left{flex:1}
+.arch-hd-title{font-weight:700;font-size:14px;color:var(--g)}
+.arch-hd-meta{font-size:12px;color:var(--grey);margin-top:3px}
+.arch-hd-right{display:flex;align-items:center;gap:8px}
+.arch-chev{font-size:14px;color:var(--lgrey)}
+.del-btn{padding:5px 10px;border-radius:7px;font-size:12px;font-weight:700;border:none;background:#fff0ef;color:var(--red);cursor:pointer;font-family:inherit;border:1px solid rgba(192,57,43,.3)}
+.del-btn:hover{background:var(--red);color:#fff}
+.arch-body{border-top:1px solid var(--border);padding:11px 14px}
+.arch-sec-title{font-size:11px;font-weight:700;color:var(--g);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e5e0d8;margin-top:10px}
+.arch-sec-title:first-child{margin-top:0}
+.arch-item{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid #f5f0ea;font-size:13px}
+.arch-item-lbl{flex:1}
+.arch-item-val{margin-left:10px;font-weight:600;font-size:12.5px;color:#444;flex-shrink:0}
+.arch-item-cmt{font-size:11px;color:var(--grey);font-style:italic;margin-top:1px;padding-left:16px}
+.chk{color:var(--sgr);font-weight:700;margin-right:5px}
+.cross{color:var(--red);font-weight:700;margin-right:5px}
+.arch-notes-box{margin-top:8px;padding:9px 12px;background:var(--cream);border-radius:8px;font-size:12.5px}
+.footer{text-align:center;padding:0 16px 22px;font-size:10.5px;color:var(--lgrey);letter-spacing:.3px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--sgr);color:#fff;padding:11px 22px;border-radius:50px;font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:999;white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.show{opacity:1}
+#toast.err{background:var(--red)}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="brand">
+    <div class="brand-ko">Ko Tane Limited</div>
+    <div class="brand-name">Waka on Avon</div>
+    <div class="brand-sub">Daily Operations Checklist</div>
+  </div>
+  <div class="tabs">
+    <button class="tab" onclick="setTab('opening')">🌅 Opening</button>
+    <button class="tab" onclick="setTab('closing')">🌙 Closing</button>
+    <button class="tab" onclick="setTab('archive')">📁 Archive</button>
+  </div>
+</div>
+
+<div id="content"></div>
+<div class="footer" id="footer">Manaakitanga · Kaitiakitanga · Tikanga · Whanaungatanga</div>
+<div id="toast"></div>
+
+<script>
+// ╔══════════════════════════════════════════╗
+// ║  Firebase Realtime Database URL          ║
+// ╚══════════════════════════════════════════╝
+const DB_URL = 'https://wakaonavon-checklist-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+// ╔══════════════════════════════════════════╗
+// ║  Admin password — change this!           ║
+// ╚══════════════════════════════════════════╝
+const ADMIN_PASSWORD = 'wakaonavon';
+
+// ── CHECKLIST DEFINITIONS ─────────────────────────────────────────────────
+const OD=[
+  {id:'od_flag', label:'1 Teardrop Flag',                   sub:'Set up at dock',                                                              t:'yn'},
+  {id:'od_hoe',  label:'Hoe (Paddles)',                                                                                                         t:'amt'},
+  {id:'od_cov',  label:'Waka Cover(s)',                                                                                                         t:'amt'},
+  {id:'od_bail', label:'Bailers',                                                                                                               t:'amt'},
+  {id:'od_lgr',  label:'Life Guard Rings',                                                                                                      t:'amt'},
+  {id:'od_brm',  label:'Broom(s)',                                                                                                              t:'amt'},
+  {id:'od_blk',  label:'Blockade(s)',                                                                                                           t:'amt'},
+  {id:'od_wad',  label:'Wader(s)',                                                                                                              t:'amt'},
+  {id:'od_cwk',  label:'Clean Tauihu, Taurapa, and Hull',  sub:'Cobwebs, dirt, etc.',                                                          t:'yn'},
+  {id:'od_cdk',  label:'Clean Dock',                        sub:'Animal dung, silt, leaves, etc.',                                              t:'yn'},
+  {id:'od_cmi',  label:'Clean Mihi Area',                   sub:'Alcoholic beverages, litter, dung removed',                                   t:'yn'},
+  {id:'od_hl',   label:'Hoe laid out evenly on grass area', sub:'Near p\u016bnga tree',                                                        t:'yn'},
+  {id:'od_dmg',  label:'Any noticeable damage to waka or dock?', sub:'If YES \u2014 report to Operations Manager before tour begins. Do not proceed until cleared.', t:'warn'},
+  {id:'od_moor', label:'Clean & untangle mooring system',                                                                                       t:'yn'},
+  {id:'od_fa',   label:'Check first aid kits in both waka',                                                                                     t:'yn'},
+];
+const OO=[
+  {id:'oo_cln',  label:'Clean office and staff room',       sub:'Swept, no food lying around',                                                  t:'yn'},
+  {id:'oo_flg',  label:'Put out 3 teardrop flags',                                                                                              t:'yn'},
+  {id:'oo_sw',   label:'1 Sandwich Board set up',                                                                                               t:'yn'},
+  {id:'oo_toi',  label:'Clean toilets',                     sub:'Toilet bowl, basin, swept floor',                                              t:'yn'},
+  {id:'oo_tp',   label:'Toilet paper stocked in each stall',sub:'Plus one extra spare per stall',                                              t:'yn'},
+  {id:'oo_ptw',  label:'Paper towel stocked for toilets',   sub:'Plus one extra per dispenser in each stall',                                  t:'yn'},
+  {id:'oo_pmp',  label:'Toilet pump plugged in and switched on',                                                                                t:'yn'},
+  {id:'oo_grf',  label:'Check for graffiti',                                                                                                    t:'yn'},
+  {id:'oo_bin',  label:'Empty bins',                        sub:'Office, staff room, and toilets',                                              t:'yn'},
+  {id:'oo_rad',  label:'Check radios are charged',                                                                                              t:'yn'},
+  {id:'oo_fa',   label:'Check first aid kit',                                                                                                   t:'yn'},
+  {id:'oo_bag',  label:'Check emergency backpacks',                                                                                             t:'yn'},
+  {id:'oo_bk',   label:'Check for bookings on Ibis and Gmail',                                                                                  t:'yn'},
+];
+const CD=[
+  {id:'cd_hoe',  label:'Pack away Hoe (Paddles)',                                                                                               t:'amt'},
+  {id:'cd_cov',  label:'Pack away Waka Cover(s)',                                                                                               t:'amt'},
+  {id:'cd_bail', label:'Pack away Bailers',                                                                                                     t:'yn'},
+  {id:'cd_lgr',  label:'Secure Life Guard Rings',                                                                                               t:'yn'},
+  {id:'cd_brm',  label:'Pack away Broom(s)',                                                                                                    t:'yn'},
+  {id:'cd_blk',  label:'Remove Blockade(s)',                                                                                                    t:'yn'},
+  {id:'cd_flg',  label:'Remove 1 Teardrop Flag (dock)',                                                                                         t:'yn'},
+  {id:'cd_wad',  label:'Pack away Wader(s)',                                                                                                    t:'yn'},
+  {id:'cd_moor', label:'Secure and check mooring system',                                                                                       t:'yn'},
+  {id:'cd_dmg',  label:'Any noticeable damage to waka or dock?', sub:'If YES \u2014 report to Operations Manager. Log in H&S Register.',       t:'warn'},
+  {id:'cd_cln',  label:'Clean and tidy dock area',                                                                                              t:'yn'},
+  {id:'cd_fa',   label:'Check & restock first aid kits in both waka',                                                                           t:'yn'},
+];
+const CO=[
+  {id:'co_cln',  label:'Clean office and staff room',       sub:'Swept, no food lying around',                                                  t:'yn'},
+  {id:'co_flg',  label:'Remove 3 teardrop flags',                                                                                               t:'yn'},
+  {id:'co_sw',   label:'Remove sandwich board',                                                                                                  t:'yn'},
+  {id:'co_toi',  label:'Final clean of toilets',                                                                                                 t:'yn'},
+  {id:'co_bin',  label:'Empty all bins',                    sub:'Office, staff room, and toilets',                                              t:'yn'},
+  {id:'co_grf',  label:'Check for graffiti',                                                                                                    t:'yn'},
+  {id:'co_rad',  label:'Put radios on charge',                                                                                                   t:'yn'},
+  {id:'co_fa',   label:'Check & restock first aid kit',                                                                                          t:'yn'},
+  {id:'co_bag',  label:'Check emergency backpacks are secured',                                                                                  t:'yn'},
+  {id:'co_lck',  label:'Lock all windows and doors',                                                                                             t:'yn'},
+  {id:'co_alm',  label:'Set alarm',                                                                                                              t:'yn'},
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const todayStr=()=>new Date().toISOString().split('T')[0];
+const fmtDate=d=>new Date(d+'T12:00:00').toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const fmtTime=s=>new Date(s).toLocaleTimeString('en-NZ',{hour:'2-digit',minute:'2-digit'});
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const initItems=defs=>Object.fromEntries(defs.map(d=>[d.id,{checked:false,yn:null,amt:'',comment:''}]));
+const cntDone=(items,defs)=>defs.filter(d=>{const i=items[d.id];return d.t==='amt'?(i&&i.checked&&i.amt.trim()):(i&&i.checked&&i.yn!==null);}).length;
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+const S={
+  tab:'opening',
+  opening:{info:{host:'',time:''},items:initItems([...OD,...OO]),notes:''},
+  closing:{info:{host:''},items:initItems([...CD,...CO]),notes:''},
+  archive:[],
+  archLoading:false,
+  archError:false,
+  expCmt:{},
+  expArch:null,
+  adminMode:false,
+  showAdminBar:false,
+  adminInput:'',
+  fbKeys:{}, // maps entry.id -> firebase key
+};
+
+// ── LOCAL STORAGE ─────────────────────────────────────────────────────────
+function loadSession(){
+  ['opening','closing'].forEach(type=>{
+    try{const raw=localStorage.getItem('woa_'+type[0]);if(raw){const d=JSON.parse(raw);if(d.date===todayStr()){if(d.items)S[type].items=d.items;if(d.info)S[type].info=d.info;if(d.notes!==undefined)S[type].notes=d.notes;}}}catch(e){}
+  });
+}
+function saveSession(type){
+  try{localStorage.setItem('woa_'+type[0],JSON.stringify({date:todayStr(),items:S[type].items,info:S[type].info,notes:S[type].notes}));}catch(e){}
+}
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────
+async function fbLoad(){
+  try{
+    const r=await fetch(DB_URL+'/archive.json');
+    if(!r.ok)throw new Error('Load failed');
+    const data=await r.json();
+    if(!data)return{entries:[],keys:{}};
+    const keys={};
+    const entries=Object.entries(data).map(([k,v])=>{keys[v.id]=k;return v;}).sort((a,b)=>new Date(b.at)-new Date(a.at));
+    return{entries,keys};
+  }catch(e){console.error('Firebase load:',e);throw e;}
+}
+async function fbSave(entry){
+  const r=await fetch(DB_URL+'/archive.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});
+  if(!r.ok)throw new Error('Save failed');
+  const data=await r.json();
+  return data.name; // firebase key
+}
+async function fbDelete(firebaseKey){
+  const r=await fetch(`${DB_URL}/archive/${firebaseKey}.json`,{method:'DELETE'});
+  if(!r.ok)throw new Error('Delete failed');
+}
+
+// ── ARCHIVE LOAD ──────────────────────────────────────────────────────────
+async function loadArchive(){
+  S.archLoading=true;S.archError=false;render();
+  try{
+    const{entries,keys}=await fbLoad();
+    S.archive=entries;S.fbKeys=keys;
+  }catch(e){S.archError=true;}
+  S.archLoading=false;render();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderItem(def,type){
+  const s=S[type].items[def.id]||{};
+  const isWarn=def.t==='warn',isBad=isWarn&&s.yn==='Y',isExp=!!S.expCmt[def.id],hasCmt=!!(s.comment&&s.comment.trim());
+  let ctrl='';
+  if(def.t==='amt'){
+    ctrl=`<input type="text" class="amt-in" value="${esc(s.amt)}" onchange="setAmt('${type}','${def.id}',this.value)" placeholder="Qty" inputmode="numeric">`;
+  }else{
+    const yC=s.yn==='Y'?(isWarn?'y-bad':'y-ok'):'',nC=s.yn==='N'?'n-on':'';
+    ctrl=`<button class="yn ${yC}" onclick="toggleYN('${type}','${def.id}','Y')">Y</button><button class="yn ${nC}" onclick="toggleYN('${type}','${def.id}','N')">N</button>`;
+  }
+  ctrl+=`<button class="cmt-btn ${hasCmt?'on':''}" onclick="togCmt('${def.id}')" title="Add comment">💬</button>`;
+  const cmtHtml=isExp?`<div class="item-cmt"><textarea placeholder="Add a comment..." oninput="setCmt('${type}','${def.id}',this.value)">${esc(s.comment||'')}</textarea></div>`:'';
+  return `<div class="item${isBad?' bad':''}"><div class="item-row"><div class="cb${s.checked?' on':''}" onclick="toggleCheck('${type}','${def.id}')"><span class="cb-mark">✓</span></div><div class="item-lbl"><div class="item-name">${isWarn?'⚠️ ':''}${esc(def.label)}</div>${def.sub?`<div class="item-note">${esc(def.sub)}</div>`:''}</div><div class="item-ctrl">${ctrl}</div></div>${cmtHtml}</div>`;
+}
+
+function renderSec(icon,title,defs,type){
+  const done=cntDone(S[type].items,defs),total=defs.length,pct=Math.round(done/total*100);
+  return `<div class="section"><div class="sec-head"><span class="sec-title">${icon} ${title}</span><span class="sec-cnt">${done}/${total}</span></div><div class="sec-bar"><div class="sec-bar-fill" style="width:${pct}%;background:${pct===100?'var(--sgr)':'var(--gold)'}"></div></div><div class="sec-items">${defs.map(d=>renderItem(d,type)).join('')}</div></div>`;
+}
+
+function renderChecklist(type){
+  const isO=type==='opening',d=S[type];
+  const dock=isO?OD:CD,office=isO?OO:CO,all=[...dock,...office];
+  const done=cntDone(d.items,all),total=all.length,pct=Math.round(done/total*100);
+  const dmgId=isO?'od_dmg':'cd_dmg',hasDmg=d.items[dmgId]?.yn==='Y';
+  return `
+    <div class="card">
+      <div class="card-title">${isO?'Opening':'Closing'} Details</div>
+      <div class="info-grid${isO?'':' single'}">
+        <div><div class="field-lbl">Host Name</div><input class="field-input" type="text" value="${esc(d.info.host||'')}" placeholder="Your name" oninput="setHost('${type}',this.value)"></div>
+        ${isO?`<div><div class="field-lbl">Tour Time</div><input class="field-input" type="text" value="${esc(d.info.time||'')}" placeholder="e.g. 10:00 AM" oninput="setTime(this.value)"></div>`:''}
+      </div>
+      <div class="date-line">📅 ${fmtDate(todayStr())}</div>
+    </div>
+    <div class="card">
+      <div class="prog-row"><span class="prog-title">Overall Progress</span><span class="prog-count">${done}/${total} items</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'var(--sgr)':'var(--g)'}"></div></div>
+      <div class="prog-pct${pct===100?' done':''}">${pct===100?'✓ All complete!':pct+'% complete'}</div>
+    </div>
+    ${hasDmg?`<div class="dmg-banner"><div class="dmg-icon">🚨</div><div><div class="dmg-title">Damage Reported</div><div class="dmg-text">${isO?'Report to the Operations Manager before the tour begins. Do not proceed until cleared.':'Log this in the H&S Register and report to the Operations Manager.'}</div></div></div>`:''}
+    ${renderSec('🚣','DOCK',dock,type)}
+    ${renderSec('🏢','OFFICE AREA',office,type)}
+    <div class="card"><div class="notes-title">📝 Notes / Issues</div><textarea class="notes-ta" placeholder="Add any notes or issues here..." oninput="setNotes('${type}',this.value)">${esc(d.notes||'')}</textarea></div>
+    <button class="arch-btn" id="arch-btn-${type}" onclick="archiveChecklist('${type}')">📤 Archive & Save Checklist</button>
+    <div class="arch-hint">Visible to everyone with the link once saved</div>`;
+}
+
+function renderArchEntry(e){
+  const dockIds=(e.type==='opening'?OD:CD).map(d=>d.id);
+  const offIds=(e.type==='opening'?OO:CO).map(d=>d.id);
+  const sel=S.expArch===e.id;
+  const done=e.items.filter(i=>i.t==='amt'?(i.checked&&i.amt):(i.checked&&i.yn!==null)).length;
+  const timeInfo=e.info?.time?` · ${e.info.time}`:'';
+  const delBtn=S.adminMode?`<button class="del-btn" onclick="event.stopPropagation();deleteEntry(${e.id})">🗑 Delete</button>`:'';
+  const secHtml=(title,ids)=>`<div class="arch-sec-title">${title}</div>${e.items.filter(i=>ids.includes(i.id)).map(i=>`<div class="arch-item"><div class="arch-item-lbl"><span class="${i.checked?'chk':'cross'}">${i.checked?'✓':'✗'}</span>${esc(i.label)}${i.comment?`<div class="arch-item-cmt">"${esc(i.comment)}"</div>`:''}</div><div class="arch-item-val">${i.t==='amt'?(i.amt||'—'):(i.yn||'—')}</div></div>`).join('')}`;
+  const body=sel?`<div class="arch-body">${secHtml('🚣 DOCK',dockIds)}${secHtml('🏢 OFFICE AREA',offIds)}${e.notes?`<div class="arch-notes-box"><strong>Notes:</strong> ${esc(e.notes)}</div>`:''}</div>`:'';
+  return `<div class="arch-entry"><div class="arch-hd" onclick="togArch(${e.id})"><div class="arch-hd-left"><div class="arch-hd-title">${e.type==='opening'?'🌅':'🌙'} ${e.type==='opening'?'Opening':'Closing'} — ${fmtDate(e.date)}</div><div class="arch-hd-meta">${esc(e.info?.host||'Unknown host')}${timeInfo} · ${done}/${e.items.length} items · ${fmtTime(e.at)}</div></div><div class="arch-hd-right">${delBtn}<span class="arch-chev">${sel?'▲':'▼'}</span></div></div>${body}</div>`;
+}
+
+function renderArchive(){
+  if(S.archLoading)return`<div class="arch-loading"><div class="spinner"></div><div>Loading archive...</div></div>`;
+  if(S.archError)return`<div class="arch-empty"><div class="arch-empty-icon">⚠️</div><div class="arch-empty-h">Couldn't load archive</div><div class="arch-empty-s">Check your internet connection.<br><br><button class="arch-btn" style="max-width:200px;margin:12px auto 0;display:block" onclick="loadArchive()">Try again</button></div></div>`;
+  const adminBarHtml=S.showAdminBar&&!S.adminMode?`<div class="admin-bar"><input type="password" id="admin-pw-input" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')checkAdmin()"><button onclick="checkAdmin()">Unlock</button></div>`:'';
+  const adminStatus=S.adminMode?`<div class="admin-status">🔓 Admin mode — you can delete entries</div>`:'';
+  const toolbar=`<div class="arch-toolbar"><span class="arch-toolbar-title">${S.archive.length} record${S.archive.length!==1?'s':''}</span><button class="admin-btn ${S.adminMode?'active':''}" onclick="togAdminBar()">${S.adminMode?'🔓 Admin':'🔒 Admin'}</button></div>${adminBarHtml}${adminStatus}`;
+  if(!S.archive.length)return toolbar+`<div class="arch-empty"><div class="arch-empty-icon">📂</div><div class="arch-empty-h">No archived records yet</div><div class="arch-empty-s">Archive a completed checklist to see it here</div></div>`;
+  return toolbar+S.archive.map(renderArchEntry).join('');
+}
+
+function render(){
+  document.querySelectorAll('.tab').forEach((b,i)=>{b.classList.toggle('active',S.tab===['opening','closing','archive'][i]);});
+  document.getElementById('footer').style.display=S.tab==='archive'?'none':'';
+  const c=document.getElementById('content');
+  if(S.tab==='opening')c.innerHTML=renderChecklist('opening');
+  else if(S.tab==='closing')c.innerHTML=renderChecklist('closing');
+  else c.innerHTML=renderArchive();
+}
+
+// ── EVENT HANDLERS ────────────────────────────────────────────────────────
+function setTab(t){S.tab=t;render();if(t==='archive')loadArchive();}
+function toggleCheck(type,id){S[type].items[id].checked=!S[type].items[id].checked;saveSession(type);render();}
+function toggleYN(type,id,v){S[type].items[id].yn=S[type].items[id].yn===v?null:v;saveSession(type);render();}
+function setAmt(type,id,v){S[type].items[id].amt=v;saveSession(type);render();}
+function setHost(type,v){S[type].info.host=v;saveSession(type);}
+function setTime(v){S.opening.info.time=v;saveSession('opening');}
+function setNotes(type,v){S[type].notes=v;saveSession(type);}
+function setCmt(type,id,v){
+  S[type].items[id].comment=v;saveSession(type);
+  const btn=document.querySelector(`[onclick="togCmt('${id}')"]`);
+  if(btn)btn.className='cmt-btn'+(v.trim()?' on':'');
+}
+function togCmt(id){S.expCmt[id]=!S.expCmt[id];render();}
+function togArch(id){S.expArch=S.expArch===id?null:id;render();}
+
+function togAdminBar(){
+  if(S.adminMode){S.adminMode=false;S.showAdminBar=false;}
+  else{S.showAdminBar=!S.showAdminBar;}
+  render();
+  if(S.showAdminBar&&!S.adminMode)setTimeout(()=>{const el=document.getElementById('admin-pw-input');if(el)el.focus();},50);
+}
+function checkAdmin(){
+  const el=document.getElementById('admin-pw-input');
+  if(el&&el.value===ADMIN_PASSWORD){S.adminMode=true;S.showAdminBar=false;render();toast('✓ Admin mode unlocked',false);}
+  else{toast('Incorrect password',true);}
+}
+
+async function deleteEntry(id){
+  if(!confirm('Delete this archived checklist? This cannot be undone.'))return;
+  const fbKey=S.fbKeys[id];
+  if(!fbKey){toast('Cannot find record to delete',true);return;}
+  try{
+    await fbDelete(fbKey);
+    S.archive=S.archive.filter(e=>e.id!==id);
+    delete S.fbKeys[id];
+    render();
+    toast('✓ Entry deleted',false);
+  }catch(e){toast('Error deleting entry',true);}
+}
+
+async function archiveChecklist(type){
+  const btn=document.getElementById('arch-btn-'+type);
+  if(btn){btn.disabled=true;btn.textContent='⏳ Saving...';}
+  const d=S[type],defs=type==='opening'?[...OD,...OO]:[...CD,...CO];
+  const entry={id:Date.now(),date:todayStr(),type,info:{...d.info},items:defs.map(def=>({...def,...d.items[def.id]})),notes:d.notes,at:new Date().toISOString()};
+  try{
+    const fbKey=await fbSave(entry);
+    S.fbKeys[entry.id]=fbKey;
+    toast('✓ Checklist archived & visible to all!',false);
+    if(btn){btn.disabled=false;btn.textContent='📤 Archive & Save Checklist';}
+  }catch(e){
+    toast('Error saving — check connection',true);
+    if(btn){btn.disabled=false;btn.textContent='📤 Archive & Save Checklist';}
+  }
+}
+
+function toast(msg,err){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className=err?'show err':'show';
+  setTimeout(()=>{el.className=err?'err':'';},3500);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+loadSession();
+render();
+</script>
+</body>
+</html>
